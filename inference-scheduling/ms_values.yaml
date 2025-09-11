@@ -1,0 +1,13 @@
+modelArtifacts:
+  uri: "hf://ibm-granite/granite-3.1-8b-instruct"
+  name: "ibm-granite/granite-3.1-8b-instruct"
+  size: 20Gi
+
+routing:
+  modelName: ibm-granite/granite-3.1-8b-instruct
+
+decode:
+  replicas: 1
+  monitoring:
+    podmonitor:
+      enabled: true

@@ -71,6 +71,7 @@ releases:
     {{- else }}
       - ms-inference-scheduling/values.yaml
     {{- end }}
+      - ms_values.yaml
     set:
     # apply release name derived values
       - name: "routing.inferencePool.name"
