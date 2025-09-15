@@ -33,12 +33,10 @@ releases:
   - name: {{ printf "llm-download-%s" $rn | quote }}
     namespace: {{ $ns }}
     chart: psap-charts/psap-llm-loader
-    version: 0.2.1
+    version: 0.2.4
     labels:
       kind: inference-stack
     installed: true
-    values:
-      - llm_downloader.yaml
     set:
       - name: llm_loader.model
         value: {{ $model }}
