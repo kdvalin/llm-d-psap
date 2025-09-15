@@ -18,14 +18,33 @@ environments:
 
 {{- $ns := .Namespace | default "llm-d-inference-scheduling" -}}
 {{- $rn := (env "RELEASE_NAME_POSTFIX") | default "inference-scheduling" -}}
+{{- $model := (env "MODEL") | default "Qwen/Qwen3-0.6B" -}}
+{{- $pvc := (env "PVC") | default "model-storage" -}}
 
 repositories:
   - name: llm-d-modelservice
     url: https://llm-d-incubation.github.io/llm-d-modelservice/
   - name: llm-d-infra
     url: https://llm-d-incubation.github.io/llm-d-infra/
+  - name: psap-charts
+    url: https://kdvalin.github.io/psap-charts/
 
 releases:
+  - name: {{ printf "llm-download-%s" $rn | quote }}
+    namespace: {{ $ns }}
+    chart: psap-charts/psap-llm-loader
+    version: 0.2.1
+    labels:
+      kind: inference-stack
+    installed: true
+    values:
+      - llm_downloader.yaml
+    set:
+      - name: llm_loader.model
+        value: {{ $model }}
+      - name: llm_loader.pvcName
+        value: {{ $pvc }}
+
   - name: {{ printf "infra-%s" $rn | quote }}
     namespace: {{ $ns }}
     chart: llm-d-infra/llm-d-infra
@@ -65,6 +84,7 @@ releases:
     needs:
       - {{ printf "infra-%s" $rn | quote }}
       - {{ printf "gaie-%s" $rn | quote }}
+      - {{ printf "llm-download-%s" $rn | quote }}
     values:
     {{- if eq .Environment.Name "gke_tpu" }}
       - ms-inference-scheduling/values_tpu.yaml
@@ -78,5 +98,11 @@ releases:
         value: {{ printf "gaie-%s" $rn | quote }}
       - name: "routing.parentRefs[0].name"
         value: {{ printf "infra-%s-inference-gateway" $rn | quote }}
+      - name: "modelArtifacts.uri"
+        value: {{ printf "pvc://%s/%s" $pvc $model | quote }}
+      - name: "modelArtifacts.name"
+        value: {{ $model | quote }}
+      - name: "routing.modelName"
+        value: {{ $model | quote }}
     labels:
       kind: inference-stack
